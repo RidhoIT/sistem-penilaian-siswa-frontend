@@ -133,11 +133,12 @@ export default function ProfilePage() {
       )}
 
       <div
-        className={`${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 transition-transform duration-300 fixed md:relative z-50`}
+        className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } md:translate-x-0 transition-transform duration-300 fixed md:relative z-50`}
       >
-        <SideBar role={user.role.toLowerCase()} />
+        {/* <SideBar role={user.role.toLowerCase()} /> */}
+        <SideBar role={user.role.toLowerCase() as "admin" | "guru"} />
+
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -178,11 +179,10 @@ export default function ProfilePage() {
                     {role.label}
                   </span>
                   <span
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
-                      user.isActive
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${user.isActive
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                         : "bg-red-50 text-red-600 border-red-200"
-                    }`}
+                      }`}
                   >
                     {user.isActive ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
                     {user.isActive ? "Aktif" : "Nonaktif"}
