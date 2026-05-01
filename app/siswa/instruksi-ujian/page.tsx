@@ -1,10 +1,13 @@
 "use client";
+import { Suspense } from "react";
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { GraduationCap, Clock, AlertTriangle, ArrowRight, Loader2 } from "lucide-react";
 
-export default function InstruksiUjianPage() {
+// export default function InstruksiUjianPage() {
+function InstruksiUjianPage() {
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const sesiId = searchParams.get("sesiId");
@@ -103,5 +106,12 @@ export default function InstruksiUjianPage() {
         )}
       </div>
     </div>
+  );
+}
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <InstruksiUjianPage />
+    </Suspense>
   );
 }

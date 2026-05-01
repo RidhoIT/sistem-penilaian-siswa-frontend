@@ -1,13 +1,17 @@
 "use client";
+import { Suspense } from "react";
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle, XCircle, TrendingUp, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-export default function SelesaiUjianPage() {
+// export default function SelesaiUjianPage() {
+function SelesaiUjianPage() {
+
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
+
   const nilai = parseFloat(searchParams.get("nilai") || "0");
   const benar = parseInt(searchParams.get("benar") || "0");
   const salah = parseInt(searchParams.get("salah") || "0");
@@ -67,5 +71,14 @@ export default function SelesaiUjianPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <SelesaiUjianPage />
+    </Suspense>
   );
 }

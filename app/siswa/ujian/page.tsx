@@ -1,4 +1,5 @@
 "use client";
+import { Suspense } from "react";
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -17,7 +18,9 @@ type Soal = {
   opsiD?: string;
 };
 
-export default function UjianPage() {
+// export default function UjianPage() {
+function UjianPage() {
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const sesiId = searchParams.get("sesiId");
@@ -37,9 +40,9 @@ export default function UjianPage() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/siswa/sesi/${sesiId}/soal`);
       const data = await res.json();
-      
+
       if (!res.ok) throw new Error(data.message);
-      
+
       setSoalList(data.soal || []);
       setSisaWaktu(data.sisaWaktu || 0);
     } catch {
@@ -69,7 +72,7 @@ export default function UjianPage() {
   // Timer
   useEffect(() => {
     if (sisaWaktu <= 0) return;
-    
+
     const timer = setInterval(() => {
       setSisaWaktu((prev) => {
         if (prev <= 1) {
@@ -86,7 +89,7 @@ export default function UjianPage() {
 
   const handleJawab = (soalId: string, jawabanDipilih: string) => {
     setJawaban((prev) => ({ ...prev, [soalId]: jawabanDipilih }));
-    
+
     // Save to API
     if (sesiId) {
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/siswa/sesi/${sesiId}/jawab`, {
@@ -97,14 +100,14 @@ export default function UjianPage() {
           jawaban: jawabanDipilih,
           isRagu: ragu[soalId] || false,
         }),
-      }).catch(() => {});
+      }).catch(() => { });
     }
   };
 
   const toggleRagu = (soalId: string) => {
     const newRagu = !ragu[soalId];
     setRagu((prev) => ({ ...prev, [soalId]: newRagu }));
-    
+
     if (sesiId && jawaban[soalId]) {
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/siswa/sesi/${sesiId}/jawab`, {
         method: "POST",
@@ -114,7 +117,7 @@ export default function UjianPage() {
           jawaban: jawaban[soalId],
           isRagu: newRagu,
         }),
-      }).catch(() => {});
+      }).catch(() => { });
     }
   };
 
@@ -130,9 +133,9 @@ export default function UjianPage() {
       });
 
       const data = await res.json();
-      
+
       if (res.ok) {
-        router.push(`/siswa/selesai-ujian?nilai=${data.nilaiAkhir}&benar=${data.nilaiBenar}&salah=${data.nilaiSalah}&lulus=${data.lulus}`); 
+        router.push(`/siswa/selesai-ujian?nilai=${data.nilaiAkhir}&benar=${data.nilaiBenar}&salah=${data.nilaiSalah}&lulus=${data.lulus}`);
       }
     } catch {
       alert("Gagal menyelesaikan ujian");
@@ -183,7 +186,7 @@ export default function UjianPage() {
               </div>
               <div className="flex-1">
                 <p className="text-lg text-zinc-900 mb-4">{currentSoal.pertanyaan}</p>
-                
+
                 {currentSoal.gambarUrl && (
                   <img src={currentSoal.gambarUrl} alt="Gambar soal" className="max-w-md rounded-lg mb-4" />
                 )}
@@ -199,18 +202,16 @@ export default function UjianPage() {
                       <button
                         key={opt.key}
                         onClick={() => handleJawab(currentSoal.id, opt.key)}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                          jawaban[currentSoal.id] === opt.key
+                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${jawaban[currentSoal.id] === opt.key
                             ? "border-zinc-900 bg-zinc-50"
                             : "border-slate-200 hover:border-slate-300"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                            jawaban[currentSoal.id] === opt.key
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${jawaban[currentSoal.id] === opt.key
                               ? "bg-zinc-900 text-white"
                               : "bg-slate-100 text-slate-600"
-                          }`}>
+                            }`}>
                             {opt.key}
                           </div>
                           <span>{opt.value}</span>
@@ -225,11 +226,10 @@ export default function UjianPage() {
             <div className="flex items-center gap-2 pt-4 border-t border-slate-100">
               <button
                 onClick={() => toggleRagu(currentSoal.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  ragu[currentSoal.id]
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${ragu[currentSoal.id]
                     ? "bg-amber-100 text-amber-700 border border-amber-200"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
+                  }`}
               >
                 <Flag className="w-4 h-4 inline mr-1" />
                 {ragu[currentSoal.id] ? "Ditandai Ragu" : "Tandai Ragu"}
@@ -275,15 +275,14 @@ export default function UjianPage() {
               <button
                 key={s.id}
                 onClick={() => setCurrentIndex(i)}
-                className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
-                  i === currentIndex
+                className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${i === currentIndex
                     ? "bg-zinc-900 text-white"
                     : jawaban[s.id]
-                    ? ragu[s.id]
-                      ? "bg-amber-100 text-amber-700 border border-amber-200"
-                      : "bg-green-100 text-green-700 border border-green-200"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
+                      ? ragu[s.id]
+                        ? "bg-amber-100 text-amber-700 border border-amber-200"
+                        : "bg-green-100 text-green-700 border border-green-200"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
               >
                 {s.nomorUrut}
               </button>
@@ -292,5 +291,13 @@ export default function UjianPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <UjianPage />
+    </Suspense>
   );
 }
