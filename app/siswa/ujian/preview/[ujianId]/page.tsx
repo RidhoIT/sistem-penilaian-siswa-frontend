@@ -18,6 +18,8 @@ type SoalPreview = {
   opsiB?: string;
   opsiC?: string;
   opsiD?: string;
+  opsiE?: string;        // ← tambah
+  jawabanBenar?: string; // ← tambah
 };
 
 type UjianDetail = {
@@ -103,11 +105,10 @@ export default function PreviewUjianPage() {
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={() => setShowJawaban((p) => !p)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors ${
-                showJawaban
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors ${showJawaban
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
+                }`}
             >
               <Eye className="w-3.5 h-3.5" />
               {showJawaban ? "Sembunyikan Jawaban" : "Tampilkan Jawaban"}
@@ -157,9 +158,8 @@ export default function PreviewUjianPage() {
                 <button
                   key={i}
                   onClick={() => setActiveIndex(i)}
-                  className={`h-8 rounded-lg text-[11px] font-bold transition-all ${
-                    i === activeIndex ? "bg-zinc-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
+                  className={`h-8 rounded-lg text-[11px] font-bold transition-all ${i === activeIndex ? "bg-zinc-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
                 >
                   {i + 1}
                 </button>
@@ -197,6 +197,8 @@ export default function PreviewUjianPage() {
                 {currentSoal.gambarUrl && (
                   <img src={currentSoal.gambarUrl} alt="Gambar soal" className="max-w-sm rounded-xl mb-5 border border-slate-200" />
                 )}
+
+
                 {currentSoal.tipe === "PILIHAN_GANDA" && (
                   <div className="space-y-2.5">
                     {[
@@ -204,18 +206,57 @@ export default function PreviewUjianPage() {
                       { key: "B", val: currentSoal.opsiB },
                       { key: "C", val: currentSoal.opsiC },
                       { key: "D", val: currentSoal.opsiD },
-                    ].filter((o) => o.val).map((opt) => (
-                      <div key={opt.key} className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50/50">
-                        <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 text-[11px] font-bold flex items-center justify-center flex-shrink-0">{opt.key}</div>
-                        <span className="text-[13px] text-zinc-800 flex-1">{opt.val}</span>
-                      </div>
-                    ))}
-                    {showJawaban && (
-                      <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                        <p className="text-[12px] text-emerald-700 font-semibold">Jawaban benar ditampilkan untuk guru — tersembunyi dari siswa.</p>
-                      </div>
-                    )}
+                      { key: "E", val: currentSoal.opsiE },
+                    ].filter((o) => o.val).map((opt) => {
+                      const isBenar = currentSoal.jawabanBenar?.trim().toUpperCase() === opt.key;
+                      return (
+                        <div
+                          key={opt.key}
+                          className={`flex items-center gap-3 p-3.5 rounded-xl border transition-colors ${isBenar
+                              ? "border-emerald-400 bg-emerald-50"
+                              : "border-slate-200 bg-slate-50/50"
+                            }`}
+                        >
+                          <div className={`w-7 h-7 rounded-full text-[11px] font-bold flex items-center justify-center flex-shrink-0 ${isBenar ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-600"
+                            }`}>
+                            {opt.key}
+                          </div>
+                          <span className={`text-[13px] flex-1 ${isBenar ? "font-semibold text-emerald-800" : "text-zinc-800"
+                            }`}>
+                            {opt.val}
+                          </span>
+                          {isBenar && <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />}
+                        </div>
+                      );
+                    })}
+
+                    {/* Kunci jawaban — selalu tampil di preview guru, tidak perlu toggle */}
+                    {/* <div className={`mt-3 p-3 rounded-xl flex items-center gap-2 ${currentSoal.jawabanBenar
+                        ? "bg-emerald-50 border border-emerald-200"
+                        : "bg-red-50 border border-red-200"
+                      }`}>
+                      <CheckCircle className={`w-4 h-4 flex-shrink-0 ${currentSoal.jawabanBenar ? "text-emerald-500" : "text-red-400"}`} />
+                      <p className={`text-[12px] font-semibold ${currentSoal.jawabanBenar ? "text-emerald-700" : "text-red-600"}`}>
+                        {currentSoal.jawabanBenar
+                          ? <>
+                            Jawaban Benar:{" "}
+                            <span className="font-bold text-emerald-900">
+                              {currentSoal.jawabanBenar.trim().toUpperCase()}
+                            </span>
+                            {" — "}
+                            <span className="font-normal">
+                              {currentSoal.jawabanBenar.trim().toUpperCase() === "A" ? currentSoal.opsiA
+                                : currentSoal.jawabanBenar.trim().toUpperCase() === "B" ? currentSoal.opsiB
+                                  : currentSoal.jawabanBenar.trim().toUpperCase() === "C" ? currentSoal.opsiC
+                                    : currentSoal.jawabanBenar.trim().toUpperCase() === "D" ? currentSoal.opsiD
+                                      : currentSoal.jawabanBenar.trim().toUpperCase() === "E" ? currentSoal.opsiE
+                                        : ""}
+                            </span>
+                          </>
+                          : "⚠️ Kunci jawaban belum diset untuk soal ini"
+                        }
+                      </p>
+                    </div> */}
                   </div>
                 )}
                 {currentSoal.tipe === "ESSAY" && (
