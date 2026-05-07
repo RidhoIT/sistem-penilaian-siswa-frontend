@@ -103,7 +103,7 @@ export default function PreviewUjianPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button
+            {/* <button
               onClick={() => setShowJawaban((p) => !p)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors ${showJawaban
                 ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -112,7 +112,7 @@ export default function PreviewUjianPage() {
             >
               <Eye className="w-3.5 h-3.5" />
               {showJawaban ? "Sembunyikan Jawaban" : "Tampilkan Jawaban"}
-            </button>
+            </button> */}
             <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${STATUS_STYLE[ujian.status] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
               {ujian.status}
             </span>
