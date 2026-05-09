@@ -7243,7 +7243,7 @@
 
 
 "use client";
-
+import { uploadGambarKeCloudinary } from "@/lib/uploadImage";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
@@ -7686,49 +7686,13 @@ Keluarkan HANYA array JSON. Mulai dengan [ dan akhiri dengan ].`;
 //   return data.url as string;
 // }
 
-export async function uploadGambarKeCloudinary(file: File | string): Promise<string> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
-
-  let fileObj: File;
-
-  if (typeof file === "string") {
-    // base64 atau blob URL → convert ke File
-    const res = await fetch(file);
-    const blob = await res.blob();
-    fileObj = new File([blob], "image.jpg", { type: blob.type });
-  } else {
-    fileObj = file;
-  }
-
-  const formData = new FormData();
-  formData.append("file", fileObj);
-
-  const uploadUrl = `${process.env.NEXT_PUBLIC_API_URL}/upload/image`;
-
-  const res = await fetch(uploadUrl, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
-  });
-
-  if (!res.ok) {
-    let errMsg = `Gagal mengupload gambar (status ${res.status})`;
-    try { const err = await res.json(); errMsg = err.message || errMsg; } catch (_) { }
-    throw new Error(errMsg);
-  }
-
-  const data = await res.json();
-  if (!data.url) throw new Error("Response tidak mengandung URL gambar");
-  return data.url as string;
-}
-
 // ─── Helper: resolve gambar — upload base64 ke Cloudinary jika perlu ─────────
 // Dipanggil sebelum POST soal ke backend.
 // Mengembalikan URL Cloudinary (https://...) atau null.
 async function resolveGambarUrl(gambar?: string): Promise<string | null> {
   if (!gambar) return null;
   if (gambar.startsWith("https://")) return gambar;  // sudah URL Cloudinary
-
+  
   if (gambar.startsWith("data:") || gambar.startsWith("blob:")) {
     // Untuk blob URL, fetch dulu jadi File, lalu upload
     if (gambar.startsWith("blob:")) {
@@ -7748,7 +7712,7 @@ async function resolveGambarUrl(gambar?: string): Promise<string | null> {
     // base64 langsung upload
     return await uploadGambarKeCloudinary(gambar);
   }
-
+  
   return null;
 }
 
@@ -10161,6 +10125,8 @@ export default function GuruMataPelajaranPage() {
             </div>
           </div>
         </div>
+
+        
       )}
 
       {/* ══ MODAL: Tambah Konten ══ */}
