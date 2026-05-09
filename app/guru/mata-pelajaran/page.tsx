@@ -7692,7 +7692,7 @@ Keluarkan HANYA array JSON. Mulai dengan [ dan akhiri dengan ].`;
 async function resolveGambarUrl(gambar?: string): Promise<string | null> {
   if (!gambar) return null;
   if (gambar.startsWith("https://")) return gambar;  // sudah URL Cloudinary
-  
+
   if (gambar.startsWith("data:") || gambar.startsWith("blob:")) {
     // Untuk blob URL, fetch dulu jadi File, lalu upload
     if (gambar.startsWith("blob:")) {
@@ -7712,7 +7712,7 @@ async function resolveGambarUrl(gambar?: string): Promise<string | null> {
     // base64 langsung upload
     return await uploadGambarKeCloudinary(gambar);
   }
-  
+
   return null;
 }
 
@@ -9399,6 +9399,40 @@ export default function GuruMataPelajaranPage() {
   //     setError(err instanceof Error ? err.message : "Gagal menyimpan soal");
   //   }
   // }
+  // async function handleUpdateSoal(ujianId: string, soalList: SoalItem[]) {
+  //   if (!selectedSubject) return;
+  //   try {
+  //     const soalIds: string[] = [];
+  //     for (const s of soalList) {
+  //       const isNewSoal = /^\d+$/.test(s.id) || s.id.startsWith("import_");
+  //       if (isNewSoal) {
+  //         const gambarUrl = await resolveGambarUrl(s.gambar); // ← upload jika base64
+  //         const soalRes = await api.post<{ id: string }>(
+  //           `/mata-pelajaran/${selectedSubject.id}/soal`,
+  //           {
+  //             pertanyaan: s.pertanyaan,
+  //             tipe: s.tipe === "pg" ? "PILIHAN_GANDA" : "ESSAY",
+  //             topik: s.topik || null,
+  //             gambarUrl,                    // ← URL Cloudinary atau null
+  //             opsiA: s.opsi[0] || null, opsiB: s.opsi[1] || null,
+  //             opsiC: s.opsi[2] || null, opsiD: s.opsi[3] || null,
+  //             opsiE: s.opsi[4] || null,
+  //             jawabanBenar: s.jawaban || null,
+  //           }
+  //         );
+  //         soalIds.push(soalRes.id);
+  //       } else {
+  //         soalIds.push(s.id); // soal lama, pakai id dari DB langsung
+  //       }
+  //     }
+  //     await api.put(`/ujian/${ujianId}`, { soalIds });
+  //     await fetchUjianByTipe(selectedSubject.id, activeTab); // ← refetch dari DB
+  //     fetchSubjects();
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : "Gagal menyimpan soal");
+  //   }
+  // }
+
   async function handleUpdateSoal(ujianId: string, soalList: SoalItem[]) {
     if (!selectedSubject) return;
     try {
@@ -9406,14 +9440,14 @@ export default function GuruMataPelajaranPage() {
       for (const s of soalList) {
         const isNewSoal = /^\d+$/.test(s.id) || s.id.startsWith("import_");
         if (isNewSoal) {
-          const gambarUrl = await resolveGambarUrl(s.gambar); // ← upload jika base64
+          const gambarUrl = await resolveGambarUrl(s.gambar);
           const soalRes = await api.post<{ id: string }>(
             `/mata-pelajaran/${selectedSubject.id}/soal`,
             {
               pertanyaan: s.pertanyaan,
               tipe: s.tipe === "pg" ? "PILIHAN_GANDA" : "ESSAY",
               topik: s.topik || null,
-              gambarUrl,                    // ← URL Cloudinary atau null
+              gambarUrl,
               opsiA: s.opsi[0] || null, opsiB: s.opsi[1] || null,
               opsiC: s.opsi[2] || null, opsiD: s.opsi[3] || null,
               opsiE: s.opsi[4] || null,
@@ -9422,17 +9456,28 @@ export default function GuruMataPelajaranPage() {
           );
           soalIds.push(soalRes.id);
         } else {
-          soalIds.push(s.id); // soal lama, pakai id dari DB langsung
+          // ✅ PERBAIKAN: soal lama tetap di-update isinya + gambarnya
+          const gambarUrl = await resolveGambarUrl(s.gambar);
+          await api.put(`/soal/${s.id}`, {
+            pertanyaan: s.pertanyaan,
+            tipe: s.tipe === "pg" ? "PILIHAN_GANDA" : "ESSAY",
+            topik: s.topik || null,
+            gambarUrl: gambarUrl ?? (s.gambar?.startsWith("https://") ? s.gambar : null),
+            opsiA: s.opsi[0] || null, opsiB: s.opsi[1] || null,
+            opsiC: s.opsi[2] || null, opsiD: s.opsi[3] || null,
+            opsiE: s.opsi[4] || null,
+            jawabanBenar: s.jawaban || null,
+          });
+          soalIds.push(s.id);
         }
       }
       await api.put(`/ujian/${ujianId}`, { soalIds });
-      await fetchUjianByTipe(selectedSubject.id, activeTab); // ← refetch dari DB
+      await fetchUjianByTipe(selectedSubject.id, activeTab);
       fetchSubjects();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal menyimpan soal");
     }
   }
-
   function copyToClipboard(text: string, type: "link" | "token") {
     navigator.clipboard.writeText(text).then(() => {
       if (type === "link") { setCopiedLink(true); setTimeout(() => setCopiedLink(false), 2000); }
@@ -10126,7 +10171,7 @@ export default function GuruMataPelajaranPage() {
           </div>
         </div>
 
-        
+
       )}
 
       {/* ══ MODAL: Tambah Konten ══ */}
