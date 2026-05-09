@@ -7639,86 +7639,86 @@ Keluarkan HANYA array JSON. Mulai dengan [ dan akhiri dengan ].`;
   }));
 }
 
-// ─── FIX UTAMA: uploadGambarKeCloudinary ─────────────────────────────────────
-// Perbaikan: URL harus menggunakan /api/upload/image (bukan /upload/image)
+
 // export async function uploadGambarKeCloudinary(file: File): Promise<string> {
 //   const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
 
 //   const formData = new FormData();
 //   formData.append("file", file);
 
-//   // ✅ PERBAIKAN: tambahkan /api/ sebelum upload/image
-//   const uploadUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/image`;
+//   // ✅ PERBAIKAN: NEXT_PUBLIC_API_URL sudah = "http://localhost:3001/api"
+//   // Jadi cukup tambahkan /upload/image, BUKAN /api/upload/image
+//   // Karena kalau tambah /api lagi → http://localhost:3001/api/api/upload/image (SALAH)
+//   const uploadUrl = `${process.env.NEXT_PUBLIC_API_URL}/upload/image`;
 
-//   console.log("[Upload] Mengirim gambar ke:", uploadUrl);
+//   console.log("[Upload] URL:", uploadUrl);
+//   // Harusnya mencetak: http://localhost:3001/api/upload/image
 
 //   const res = await fetch(uploadUrl, {
 //     method: "POST",
 //     headers: {
-//       // Jangan set Content-Type manual — browser otomatis set boundary multipart
+//       // ⚠️ JANGAN set Content-Type manual untuk multipart/form-data
+//       // Browser akan otomatis set Content-Type + boundary yang benar
 //       Authorization: `Bearer ${token}`,
 //     },
 //     body: formData,
 //   });
 
 //   if (!res.ok) {
-//     const err = await res.json().catch(() => ({}));
-//     console.error("[Upload] Gagal:", err);
-//     throw new Error(err.message || `Gagal mengupload gambar (status ${res.status})`);
+//     let errMsg = `Gagal mengupload gambar (status ${res.status})`;
+//     try {
+//       const err = await res.json();
+//       errMsg = err.message || errMsg;
+//     } catch (_) {
+//       // res bukan JSON, gunakan pesan default
+//     }
+//     console.error("[Upload] Gagal:", res.status, errMsg);
+//     throw new Error(errMsg);
 //   }
 
 //   const data = await res.json();
-//   console.log("[Upload] Berhasil, URL:", data.url);
 
 //   if (!data.url) {
 //     throw new Error("Response tidak mengandung URL gambar");
 //   }
 
+//   console.log("[Upload] Berhasil:", data.url);
 //   return data.url as string;
 // }
-export async function uploadGambarKeCloudinary(file: File): Promise<string> {
+
+export async function uploadGambarKeCloudinary(file: File | string): Promise<string> {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
 
+  let fileObj: File;
+
+  if (typeof file === "string") {
+    // base64 atau blob URL → convert ke File
+    const res = await fetch(file);
+    const blob = await res.blob();
+    fileObj = new File([blob], "image.jpg", { type: blob.type });
+  } else {
+    fileObj = file;
+  }
+
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("file", fileObj);
 
-  // ✅ PERBAIKAN: NEXT_PUBLIC_API_URL sudah = "http://localhost:3001/api"
-  // Jadi cukup tambahkan /upload/image, BUKAN /api/upload/image
-  // Karena kalau tambah /api lagi → http://localhost:3001/api/api/upload/image (SALAH)
   const uploadUrl = `${process.env.NEXT_PUBLIC_API_URL}/upload/image`;
-
-  console.log("[Upload] URL:", uploadUrl);
-  // Harusnya mencetak: http://localhost:3001/api/upload/image
 
   const res = await fetch(uploadUrl, {
     method: "POST",
-    headers: {
-      // ⚠️ JANGAN set Content-Type manual untuk multipart/form-data
-      // Browser akan otomatis set Content-Type + boundary yang benar
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: formData,
   });
 
   if (!res.ok) {
     let errMsg = `Gagal mengupload gambar (status ${res.status})`;
-    try {
-      const err = await res.json();
-      errMsg = err.message || errMsg;
-    } catch (_) {
-      // res bukan JSON, gunakan pesan default
-    }
-    console.error("[Upload] Gagal:", res.status, errMsg);
+    try { const err = await res.json(); errMsg = err.message || errMsg; } catch (_) { }
     throw new Error(errMsg);
   }
 
   const data = await res.json();
-
-  if (!data.url) {
-    throw new Error("Response tidak mengandung URL gambar");
-  }
-
-  console.log("[Upload] Berhasil:", data.url);
+  if (!data.url) throw new Error("Response tidak mengandung URL gambar");
   return data.url as string;
 }
 
@@ -7728,7 +7728,7 @@ export async function uploadGambarKeCloudinary(file: File): Promise<string> {
 async function resolveGambarUrl(gambar?: string): Promise<string | null> {
   if (!gambar) return null;
   if (gambar.startsWith("https://")) return gambar;  // sudah URL Cloudinary
-  
+
   if (gambar.startsWith("data:") || gambar.startsWith("blob:")) {
     // Untuk blob URL, fetch dulu jadi File, lalu upload
     if (gambar.startsWith("blob:")) {
@@ -7748,7 +7748,7 @@ async function resolveGambarUrl(gambar?: string): Promise<string | null> {
     // base64 langsung upload
     return await uploadGambarKeCloudinary(gambar);
   }
-  
+
   return null;
 }
 
